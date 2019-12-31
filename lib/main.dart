@@ -7,15 +7,21 @@ import 'package:random_facts/src/bloc/facts_bloc.dart';
 import 'package:random_facts/src/bloc/facts_state.dart';
 import 'package:random_facts/src/resources/numbers_repository.dart';
 import 'src/swipe_cards/flutter_tindercard.dart';
+import 'package:flutter/services.dart';
 
-void main() => runApp(new MyApp());
+Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  runApp(new MyApp());
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Random Facts',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -35,124 +41,125 @@ class ExampleHomePage extends StatefulWidget {
 
 class _ExampleHomePageState extends State<ExampleHomePage>
     with TickerProviderStateMixin {
-  List<String> welcomeImages = [
-    "res/portrait.jpeg",
-    "res/portrait.jpeg",
-    "res/portrait.jpeg",
-    "res/portrait.jpeg",
-    "res/portrait.jpeg",
-    "res/portrait.jpeg"
-  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        child: BlocBuilder<FactsBloc, FactsState>(
-          builder: (context, state) {
-            if (state is InitialFactsState) {
-              return allCards(context, buildInitial());
-            } else if (state is LoadingFactsState) {
-              return allCards(context, buildLoading());
-            } else if (state is LoadedFactsState) {
-              return Center(
-                child: allCards(
-                  context,
-                  formatedText("${state.item.text}"),
-                ),
-              );
-            } else if (state is ErrorFactsState) {
-              return allCards(
-                context,
-                formatedText("${state.message}"),
-              );
-            } else {
-              return buildLoading();
-            }
-          },
+      appBar: AppBar(
+        title: Text("Random Number Facts"),
+      ),
+      resizeToAvoidBottomPadding: false,
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            Container(
+              child: BlocBuilder<FactsBloc, FactsState>(
+                builder: (context, state) {
+                  if (state is InitialFactsState) {
+                    return allCards(context, buildInitial());
+                  } else if (state is LoadingFactsState) {
+                    return allCards(context, buildLoading());
+                  } else if (state is LoadedFactsState) {
+                    return Center(
+                      child: allCards(
+                        context,
+                        formatedText("${state.item.text}"),
+                      ),
+                    );
+                  } else if (state is ErrorFactsState) {
+                    return allCards(
+                      context,
+                      formatedText("${state.message}"),
+                    );
+                  } else {
+                    return buildLoading();
+                  }
+                },
+              ),
+            ),
+            Container(
+              child: ButtonBar(
+                // crossAxisAlignment: CrossAxisAlignment.center,
+                // mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ButtonTheme(
+                    minWidth: 75.0,
+                    height: 60.0,
+                    child: RaisedButton(
+                      shape: new CircleBorder(
+                          // borderRadius: new BorderRadius.circular(50.0),
+                          // side: BorderSide(color: Colors.red),
+                          ),
+                      child: Text(
+                        "#",
+                        style: TextStyle(
+                            color: Colors.grey[800],
+                            fontWeight: FontWeight.w700,
+                            fontStyle: FontStyle.italic,
+                            fontFamily: 'Open Sans',
+                            fontSize: 30),
+                      ),
+                      onPressed: () {},
+                    ),
+                  ),
+                  ButtonTheme(
+                    minWidth: 50.0,
+                    height: 60.0,
+                    child: RaisedButton(
+                      shape: new CircleBorder(),
+                      child: Icon(
+                        Icons.shuffle,
+                        size: 30.0,
+                      ),
+                      onPressed: () {},
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
         ),
       ),
     );
   }
-  // @override
-  // Widget build(BuildContext context) {
-  //   CardController controller; //Use this to trigger swap.
-
-  //   return new Scaffold(
-  //     body: new Center(
-  //       child: Container(
-  //         color: Colors.blue,
-  //         height: MediaQuery.of(context).size.height * 0.9,
-  //         child: new TinderSwapCard(
-  //           orientation: AmassOrientation.BOTTOM,
-  //           totalNum: 6,
-  //           stackNum: 3,
-  //           swipeEdge: 4.0,
-  //           maxWidth: MediaQuery.of(context).size.width * 0.9,
-  //           maxHeight: MediaQuery.of(context).size.width * 0.9,
-  //           minWidth: MediaQuery.of(context).size.width * 0.8,
-  //           minHeight: MediaQuery.of(context).size.width * 0.8,
-  //           cardBuilder: (context, index) => Card(
-  //             child: Image.asset('${welcomeImages[index]}'),
-  //           ),
-  //           cardController: controller = CardController(),
-  //           swipeUpdateCallback: (DragUpdateDetails details, Alignment align) {
-  //             /// Get swiping card's alignment
-  //             if (align.x < 0) {
-  //               //Card is LEFT swiping
-  //             } else if (align.x > 0) {
-  //               //Card is RIGHT swiping
-  //             }
-  //           },
-  //           swipeCompleteCallback:
-  //               (CardSwipeOrientation orientation, int index) {
-  //             /// Get orientation & index of swiped card!
-  //           },
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-// final factBloc = BlocProvider.of<FactsBloc>(context);
-//     factBloc.add(GetFact(5));
 
   Widget allCards(BuildContext context, Widget shownWidget) {
     CardController controller;
     final factBloc = BlocProvider.of<FactsBloc>(context);
+    var randomNum = new Random().nextInt(6555);
 
-    return Center(
-      child: Container(
-        // color: Colors.blue,
-        height: MediaQuery.of(context).size.height * 0.9,
-        child: new TinderSwapCard(
-          orientation: AmassOrientation.BOTTOM,
-          totalNum: 6,
-          stackNum: 3,
-          swipeEdge: 4.0,
-          maxWidth: MediaQuery.of(context).size.width * 0.9,
-          maxHeight: MediaQuery.of(context).size.width * 0.9,
-          minWidth: MediaQuery.of(context).size.width * 0.8,
-          minHeight: MediaQuery.of(context).size.width * 0.8,
-          cardBuilder: (context, index) => Card(
-            child: shownWidget,
-          ),
-          cardController: controller = CardController(),
-          swipeUpdateCallback: (DragUpdateDetails details, Alignment align) {
-            /// Get swiping card's alignment
-            if (align.x < 0) {
-              // Card is LEFT swiping
-            } else if (align.x > 0) {
-              //Card is RIGHT swiping
-            }
-          },
-          swipeCompleteCallback: (CardSwipeOrientation orientation, int index) {
-            /// Get orientation & index of swiped card!
-            if (orientation == CardSwipeOrientation.LEFT ||
-                orientation == CardSwipeOrientation.RIGHT) {
-              var randomNum = new Random();
-              factBloc.add(GetFact(randomNum.nextInt(100)));
-            }
-          },
+    return Container(
+      color: Colors.blue,
+      height: MediaQuery.of(context).size.height * 0.7,
+      child: new TinderSwapCard(
+        orientation: AmassOrientation.BOTTOM,
+        totalNum: 6,
+        stackNum: 3,
+        swipeEdge: 4.0,
+        animDuration: 400,
+        maxWidth: MediaQuery.of(context).size.width * 0.9,
+        maxHeight: MediaQuery.of(context).size.width * 0.9,
+        minWidth: MediaQuery.of(context).size.width * 0.8,
+        minHeight: MediaQuery.of(context).size.width * 0.8,
+        cardBuilder: (context, index) => Card(
+          child: shownWidget,
         ),
+        cardController: controller = CardController(),
+        swipeUpdateCallback: (DragUpdateDetails details, Alignment align) {
+          /// Get swiping card's alignment
+          if (align.x < 0) {
+            // Card is LEFT swiping
+          } else if (align.x > 0) {
+            //Card is RIGHT swiping
+          }
+        },
+        swipeCompleteCallback: (CardSwipeOrientation orientation, int index) {
+          /// Get orientation & index of swiped card!
+          if (orientation == CardSwipeOrientation.LEFT ||
+              orientation == CardSwipeOrientation.RIGHT) {
+            factBloc.add(GetFact(randomNum));
+          }
+        },
       ),
     );
   }
