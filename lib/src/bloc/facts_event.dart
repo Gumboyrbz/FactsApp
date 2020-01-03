@@ -5,8 +5,8 @@ abstract class FactsEvent extends Equatable {
 }
 
 class GetFact extends FactsEvent {
-  final int number;
-  const GetFact(this.number);
+  final String type;
+  const GetFact(this.type);
   @override
-  List<Object> get props => [number];
+  List<Object> get props => [type];
 }

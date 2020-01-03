@@ -8,18 +8,18 @@ class NumberRepository {
   List<Source> sources = <Source>[];
   List<Cache> caches = <Cache>[];
   NumberRepository() {
-    sources.add(kIsWeb?null:numberDbProvider);
+    sources.add(kIsWeb ? null : numberDbProvider);
     sources.add(NumbersApiProvider());
     sources.removeWhere((item) => item == null);
-    caches.add(kIsWeb?null:numberDbProvider);
+    caches.add(kIsWeb ? null : numberDbProvider);
     caches.removeWhere((item) => item == null);
   }
 
-  Future<ItemModel> fetchItem(int id) async {
+  Future<ItemModel> fetchItem(int id, [String type = "trivia"]) async {
     ItemModel item;
     var source;
     for (source in sources) {
-      item = await source.fetchItem(id);
+      item = await source.fetchItem(id, type);
       if (item != null) {
         break;
       }
@@ -27,6 +27,18 @@ class NumberRepository {
     for (var cache in caches) {
       if (cache != source) {
         cache.addItem(item);
+      }
+    }
+    return item;
+  }
+
+  Future<ItemModel> fetchRandom(String type) async {
+    ItemModel item;
+    var source;
+    for (source in sources) {
+      item = await source.fetchRandom(type);
+      if (item != null) {
+        break;
       }
     }
     return item;
@@ -40,13 +52,13 @@ class NumberRepository {
 }
 
 abstract class Source {
-  Future<List<int>> fetchRange(int start, int end, {String type});
-  Future<ItemModel> fetchItem(int id);
+  Future<void> fetchRange(int start, int end, [String type]);
+  Future<ItemModel> fetchItem(int id, [String type]);
   Future<ItemModel> fetchTrivia(int id);
   Future<ItemModel> fetchMath(int id);
-  Future<ItemModel> fetchDate(int month, int day);
+  Future<ItemModel> fetchDate(int day);
   Future<ItemModel> fetchYear(int id);
-  Future<ItemModel> fetchRandom(String id);
+  Future<ItemModel> fetchRandom(String type);
 }
 
 abstract class Cache {

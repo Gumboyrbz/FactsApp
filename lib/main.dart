@@ -126,7 +126,7 @@ class _ExampleHomePageState extends State<ExampleHomePage>
   Widget allCards(BuildContext context, Widget shownWidget) {
     CardController controller;
     final factBloc = BlocProvider.of<FactsBloc>(context);
-    var randomNum = new Random().nextInt(6555);
+    var randomNum = new Random().nextInt(10);
 
     return Container(
       color: Colors.blue,
@@ -157,7 +157,7 @@ class _ExampleHomePageState extends State<ExampleHomePage>
           /// Get orientation & index of swiped card!
           if (orientation == CardSwipeOrientation.LEFT ||
               orientation == CardSwipeOrientation.RIGHT) {
-            factBloc.add(GetFact(randomNum));
+            factBloc.add(GetFact("trivia"));
           }
         },
       ),

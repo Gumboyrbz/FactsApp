@@ -20,7 +20,7 @@ class ItemModel extends Equatable {
 
   Map<String, dynamic> toMapForDb() {
     return <String, dynamic>{
-      'number': number,
+      'number_id': number,
       'found': found ? 1 : 0,
       'type': type,
       'text': text,

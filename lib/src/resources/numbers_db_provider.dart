@@ -28,33 +28,78 @@ class NumberDbProvider implements Source, Cache {
               found INTEGER
             )
           """);
+          newDb.execute("""
+          CREATE TABLE IF NOT EXISTS trivia
+            (
+              id INTEGER PRIMARY KEY autoincrement,
+              number_id INTEGER,
+              type TEXT,
+              text TEXT,
+              found INTEGER
+            )
+          """);
+          newDb.execute("""
+          CREATE TABLE IF NOT EXISTS date
+            (
+              id INTEGER PRIMARY KEY autoincrement,
+              number_id INTEGER,
+              year INTEGER,
+              type TEXT,
+              text TEXT,
+              found INTEGER
+            )
+          """);
+          newDb.execute("""
+          CREATE TABLE IF NOT EXISTS math
+            (
+              id INTEGER PRIMARY KEY autoincrement,
+              number_id INTEGER,
+              type TEXT,
+              text TEXT,
+              found INTEGER
+            )
+          """);
+          newDb.execute("""
+          CREATE TABLE IF NOT EXISTS year
+            (
+              id INTEGER PRIMARY KEY autoincrement,
+              number_id INTEGER,
+              type TEXT,
+              text TEXT,
+              found INTEGER
+            )
+          """);
       },
     );
   }
 
   @override
-  Future<int> addItem(ItemModel item) {
-    return db.insert("Numbers", item.toMapForDb(),
+  Future<int> addItem(ItemModel item, {String type = "trivia"}) {
+    return db.insert("$type", item.toMapForDb(),
         conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   @override
   Future<int> clear() {
+    db.delete("trivia");
+    db.delete("math");
+    db.delete("date");
+    db.delete("year");
     return db.delete("Numbers");
   }
 
   @override
-  Future<ItemModel> fetchDate(int month, int day) {
+  Future<ItemModel> fetchDate(int day) {
     // TODO: implement fetchDate
     throw UnimplementedError();
   }
 
   @override
-  Future<ItemModel> fetchItem(int id) async {
+  Future<ItemModel> fetchItem(int id, [String type="trivia"]) async {
     final maps = await db.query(
-      "Numbers",
+      "$type",
       columns: null,
-      where: "number = ?",
+      where: "number_id = ?",
       whereArgs: [id],
     );
     if (maps.length > 0) {
@@ -70,13 +115,18 @@ class NumberDbProvider implements Source, Cache {
   }
 
   @override
-  Future<ItemModel> fetchRandom(String id) {
-    // TODO: implement fetchRandom
-    throw UnimplementedError();
+  Future<ItemModel> fetchRandom(String type) async {
+    final maps = await db.rawQuery(
+      "SELECT * FROM $type WHERE id IN (SELECT id FROM $type ORDER BY RANDOM() LIMIT 1)"
+    );
+    if (maps.length > 0) {
+      return ItemModel.fromDb(maps.first);
+    }
+    return null;
   }
 
   @override
-  Future<List<int>> fetchRange(int start, int end, {String type}) {
+    Future<void> fetchRange(int start, int end, [String type]) {
     // TODO: implement fetchRange
     throw UnimplementedError();
   }

@@ -19,7 +19,7 @@ class FactsBloc extends Bloc<FactsEvent, FactsState> {
     if (event is GetFact) {
       // print(event.number);
       try {
-        final fact = await numberRepository.fetchItem(event.number);
+        final fact = await numberRepository.fetchRandom(event.type);
         yield LoadedFactsState(fact);
       } catch (e) {
         print(e);
