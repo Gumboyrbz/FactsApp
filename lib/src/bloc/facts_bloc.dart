@@ -22,9 +22,19 @@ class FactsBloc extends Bloc<FactsEvent, FactsState> {
         final fact = await numberRepository.fetchRandom(event.type);
         yield LoadedFactsState(fact);
       } catch (e) {
-        print(e);
+        print("Single");
         yield ErrorFactsState('Couldn\'t get fact data');
       }
+    }
+    else if(event is GetFacts){
+      try {
+        final facts = await numberRepository.fetchMultiple(event.size);
+        yield LoadedMultipleFactsState(facts);
+      } catch (e) {
+        print("Multiple");
+        yield ErrorFactsState('Couldn\'t get facts data');
+      }
+
     }
   }
 }

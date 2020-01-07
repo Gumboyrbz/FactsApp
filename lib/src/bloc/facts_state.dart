@@ -23,6 +23,12 @@ class LoadedFactsState extends FactsState {
   @override
   List<Object> get props => [item];
 }
+class LoadedMultipleFactsState extends FactsState{
+  final List<ItemModel> items;
+  const LoadedMultipleFactsState(this.items);
+  @override
+  List<Object> get props => [items];
+}
 
 class ErrorFactsState extends FactsState {
   final String message;

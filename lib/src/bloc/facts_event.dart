@@ -10,3 +10,9 @@ class GetFact extends FactsEvent {
   @override
   List<Object> get props => [type];
 }
+class GetFacts extends FactsEvent {
+  final int size;
+  const GetFacts(this.size);
+  @override
+  List<Object> get props => [size];
+}
