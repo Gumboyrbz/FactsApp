@@ -4,6 +4,12 @@ abstract class FactsEvent extends Equatable {
   const FactsEvent();
 }
 
+class GetInitial extends FactsEvent {
+  const GetInitial();
+  @override
+  List<Object> get props => [];
+}
+
 class GetFact extends FactsEvent {
   final String type;
   const GetFact(this.type);
@@ -12,7 +18,9 @@ class GetFact extends FactsEvent {
 }
 class GetFacts extends FactsEvent {
   final int size;
-  const GetFacts(this.size);
+  final String type;
+  const GetFacts(this.size,[this.type = "trivia"]);
   @override
-  List<Object> get props => [size];
+  List<Object> get props => [size, type];
 }
+

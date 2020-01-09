@@ -26,6 +26,7 @@ dependencies:
   sqflite: ^1.2.0
   path_provider: ^1.5.1
   path: ^1.6.4
+  share: ^0.6.3+5
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -50,7 +51,7 @@ flutter:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
   assets:
-    - res/portrait.jpeg
+    - res/default.jpg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
   # For details regarding adding assets from package dependencies, see

@@ -14,27 +14,26 @@ class FactsBloc extends Bloc<FactsEvent, FactsState> {
   Stream<FactsState> mapEventToState(
     FactsEvent event,
   ) async* {
-    // TODO: Add Logic
     yield LoadingFactsState();
     if (event is GetFact) {
-      // print(event.number);
       try {
         final fact = await numberRepository.fetchRandom(event.type);
         yield LoadedFactsState(fact);
       } catch (e) {
-        print("Single");
         yield ErrorFactsState('Couldn\'t get fact data');
       }
     }
     else if(event is GetFacts){
       try {
-        final facts = await numberRepository.fetchMultiple(event.size);
+        final facts = await numberRepository.fetchMultiple(event.size, event.type);
         yield LoadedMultipleFactsState(facts);
       } catch (e) {
-        print("Multiple");
         yield ErrorFactsState('Couldn\'t get facts data');
       }
 
+    }
+    else if(event is GetInitial){
+      yield InitialFactsState();
     }
   }
 }

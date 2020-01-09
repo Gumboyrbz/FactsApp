@@ -10,14 +10,13 @@ import '../models/numbers/item_model.dart';
 
 class NumberDbProvider implements Source, Cache {
   Database db;
-  final _random = new Random();
+  final _random = new Random(DateTime.now().millisecondsSinceEpoch);
   final types = ["trivia", "math", "date", "year"];
   var batch;
   NumberDbProvider() {
     if (!kIsWeb) {
       init();
     }
-    ;
   }
   void init() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
@@ -25,8 +24,8 @@ class NumberDbProvider implements Source, Cache {
     db = await openDatabase(
       path,
       version: 1,
-      onCreate: (Database newDb, int version) {
-        newDb.execute("""
+      onCreate: (Database newDb, int version) async {
+        await newDb.execute("""
           CREATE TABLE IF NOT EXISTS Numbers
             (
               number INTEGER PRIMARY KEY,
@@ -36,7 +35,7 @@ class NumberDbProvider implements Source, Cache {
               used INTEGER
             )
           """);
-        newDb.execute("""
+        await newDb.execute("""
           CREATE TABLE IF NOT EXISTS trivia
             (
               id INTEGER PRIMARY KEY autoincrement,
@@ -47,7 +46,7 @@ class NumberDbProvider implements Source, Cache {
               used INTEGER
             )
           """);
-        newDb.execute("""
+        await newDb.execute("""
           CREATE TABLE IF NOT EXISTS date
             (
               id INTEGER PRIMARY KEY autoincrement,
@@ -59,7 +58,7 @@ class NumberDbProvider implements Source, Cache {
               used INTEGER
             )
           """);
-        newDb.execute("""
+        await newDb.execute("""
           CREATE TABLE IF NOT EXISTS math
             (
               id INTEGER PRIMARY KEY autoincrement,
@@ -70,7 +69,7 @@ class NumberDbProvider implements Source, Cache {
               used INTEGER
             )
           """);
-        newDb.execute("""
+        await newDb.execute("""
           CREATE TABLE IF NOT EXISTS year
             (
               id INTEGER PRIMARY KEY autoincrement,
@@ -162,15 +161,15 @@ class NumberDbProvider implements Source, Cache {
             "UPDATE $type SET used = 1 WHERE number_id= ${i["number_id"]}");
       }
 
-      if (maps.length <= lowlimit) {
-        // mapChange = await db.rawUpdate("UPDATE $type SET used = 0");
-        resetUsedFacts(type);
-      }
+    //   if (maps.length <= lowlimit) {
+    //     // mapChange = await db.rawUpdate("UPDATE $type SET used = 0");
+    //     resetUsedFacts(type);
+    //   }
 
-      return listofItems;
-    } else if (maps.length <= lowlimit) {
-      // mapChange = await db.rawUpdate("UPDATE $type SET used = 0");
-      resetUsedFacts(type);
+    //   return listofItems;
+    // } else if (maps.length <= lowlimit) {
+    //   // mapChange = await db.rawUpdate("UPDATE $type SET used = 0");
+    //   resetUsedFacts(type);
     }
 
     return null;
@@ -188,12 +187,12 @@ class NumberDbProvider implements Source, Cache {
   }
 
   Future<int> resetUsedFacts([String type = "trivia"]) async {
-    final resetTable = await batch.rawUpdate("UPDATE $type SET used = 0");
+    final resetTable = await batch?.rawUpdate("UPDATE $type SET used = 0");
     return resetTable;
   }
 
   Future<int> deleteDupFacts([String type = "trivia"]) async {
-    final deleteDup = await batch.rawDelete('''delete from $type
+    final deleteDup = await batch?.rawDelete('''delete from $type
       where id not in
          (
          select min(id)

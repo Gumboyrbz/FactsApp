@@ -10,7 +10,7 @@ class NumbersApiProvider implements Source {
   final _url = "http://numbersapi.com";
   final _ujson = '?json&notfound=floor';
   final types = ["trivia", "math", "date", "year"];
-  var _random = new Random();
+  var _random = new Random(DateTime.now().millisecondsSinceEpoch);
   Future<List<ItemModel>> fetchRange(int start, int end, [String type]) async {
     final idUrl = "$_url/$start..$end/$type$_ujson";
     final ids = await jsonResponse(idUrl);
@@ -65,7 +65,7 @@ class NumbersApiProvider implements Source {
     final parsedJson = await jsonResponse(itemUrl);
     return ItemModel.fromJson(parsedJson);
   }
-
+               
   Future<ItemModel> fetchRandom(String id) async {
     final itemUrl = "$_url/random/$id$_ujson";
     final parsedJson = await jsonResponse(itemUrl);
@@ -74,7 +74,12 @@ class NumbersApiProvider implements Source {
 
   Future<List<ItemModel>> fetchMultiple(
       [int size, String type, int maxVal]) async {
-    var randomList = new List.generate(size, (_) => _random.nextInt(maxVal));
+    var min = 0;
+    if (type == "date") {
+      min = 1;
+    }
+    var randomList =
+        new List.generate(size, (_) => min + _random.nextInt(maxVal - min));
     final itemUrl = "$_url/${randomList.join(',')}/$type/$_ujson";
     print(itemUrl);
     final ids = await jsonResponse(itemUrl);
