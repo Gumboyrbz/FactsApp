@@ -81,7 +81,6 @@ class NumbersApiProvider implements Source {
     var randomList =
         new List.generate(size, (_) => min + _random.nextInt(maxVal - min));
     final itemUrl = "$_url/${randomList.join(',')}/$type/$_ujson";
-    print(itemUrl);
     final ids = await jsonResponse(itemUrl);
     if (ids != -1) {
       List<ItemModel> rangeofItems = List<ItemModel>();

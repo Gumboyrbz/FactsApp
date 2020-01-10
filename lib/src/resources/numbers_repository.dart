@@ -18,9 +18,8 @@ class NumberRepository {
   var _random = new Random(DateTime.now().millisecondsSinceEpoch);
   var globalType = "trivia";
   NumberRepository() {
-    // print("KIsWeb Value:$kIsWeb");
-    sources.add(numbersApiProvider);
     sources.add(kIsWeb ? null : numberDbProvider);
+    sources.add(numbersApiProvider);
     sources.removeWhere((item) => item == null);
     caches.add(kIsWeb ? null : numberDbProvider);
     caches.removeWhere((item) => item == null);

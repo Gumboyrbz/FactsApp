@@ -167,12 +167,12 @@ class NumberDbProvider implements Source, Cache {
     //   }
 
     //   return listofItems;
-    // } else if (maps.length <= lowlimit) {
-    //   // mapChange = await db.rawUpdate("UPDATE $type SET used = 0");
-    //   resetUsedFacts(type);
+    } else if (maps.length <= lowlimit) {
+      // mapChange = await db.rawUpdate("UPDATE $type SET used = 0");
+      resetUsedFacts(type);
     }
 
-    return null;
+    return listofItems;
   }
 
   Future<int> cleanUpDatabase([bool reset = false]) async {

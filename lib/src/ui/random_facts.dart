@@ -1,12 +1,17 @@
 import 'dart:math';
 import 'dart:core';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:random_facts/src/bloc/bloc.dart';
 import 'package:random_facts/src/bloc/facts_bloc.dart';
 import 'package:random_facts/src/bloc/facts_state.dart';
 import 'package:random_facts/src/resources/numbers_repository.dart';
 import 'package:random_facts/src/swipe_cards/flutter_tindercard.dart';
+import 'package:share/share.dart';
+import 'package:random_facts/src/ui/SizeConfig.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class RandomFactsApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -46,14 +51,35 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   static int rndnum = rng.nextInt(picArray.length);
   final picUrl = picArray[rndnum] + "480x720";
   bool _hide = false;
-
+  String _textToBeShared = "Useless Number Facts to share with friends";
+  String _nameOfApp = "Fact Brought to you by App";
+  static const String _devLink = "https://gumboyrbz.github.io";
+  List<bool> _listTileSelected = List.generate(4, (i) => false);
   String _changeType = "trivia";
+  bool _refreshActive = false;
+
   @override
   Widget build(BuildContext context) {
     final factsBloc = BlocProvider.of<FactsBloc>(context);
+    final key = new GlobalKey<ScaffoldState>();
+    SizeConfig().init(context);
+    int _totalsel = _listTileSelected.length;
+    final defaultImage = Image.asset(
+      'res/default.jpg', width: SizeConfig.screenWidth, //size.width,
+      height: SizeConfig.screenHeight, //size.height,
+      fit: BoxFit.fill,
+    );
 
-    Size size = MediaQuery.of(context).size;
-    final Widget todaysPic = FadeInImage(
+    // final Widget todaysPic = CachedNetworkImage(
+    //   imageUrl: picUrl,
+    //   width: SizeConfig.screenWidth, //size.width,
+    //   height: SizeConfig.screenHeight, //size.height,
+    //   fit: BoxFit.fill,
+    //   useOldImageOnUrlChange: true,
+    //   placeholder: (context, url) => defaultImage,
+    //   errorWidget: (context, url, error) => defaultImage,
+    // );
+   final Widget todaysPic = FadeInImage(
       placeholder: AssetImage('res/default.jpg'),
       image: NetworkImage(
         picUrl,
@@ -61,187 +87,220 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         // height: size.height,
         // fit: BoxFit.fill,
       ),
-      width: size.width,
-      height: size.height,
+      width: SizeConfig.screenWidth, //size.width,
+      height: SizeConfig.screenHeight, //size.height,
       fit: BoxFit.fill,
     );
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Useless Number Facts"),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              child: Text('Categories'),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.help,
-                size: 40,
-              ),
-              title: formatedText('Trivia'),
-              onTap: () {
-                factsBloc.add(GetInitial());
-                _onChangedType("trivia");
-                Navigator.pop(context);
+      key: key,
+      backgroundColor: Colors.transparent,
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text("Useless Facts"),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.loop),
+              onPressed: () {
+                factsBloc.add(GetFacts(20, _changeType));
               },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.date_range,
-                size: 40,
-              ),
-              title: formatedText('Date'),
-              onTap: () {
-                factsBloc.add(GetInitial());
-                _onChangedType("date");
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.filter_9_plus,
-                size: 40,
-              ),
-              title: formatedText('Math'),
-              onTap: () {
-                factsBloc.add(GetInitial());
-                _onChangedType("math");
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.access_time,
-                size: 40,
-              ),
-              title: formatedText('Year'),
-              onTap: () {
-                factsBloc.add(GetInitial());
-                _onChangedType("year");
-                Navigator.pop(context);
-              },
-            ),
+            )
           ],
         ),
-      ),
-      // backgroundColor: Colors.grey[900],
-      resizeToAvoidBottomPadding: false,
-      body: Stack(
-        children: <Widget>[
-          Center(child: todaysPic),
-          Column(
+        drawer: Drawer(
+          child: ListView(
+            physics: NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
             children: <Widget>[
-              Container(
-                child: BlocBuilder<FactsBloc, FactsState>(
-                  builder: (context, state) {
-                    if (state is InitialFactsState) {
-                      return allCards(context, factsBloc, buildInitial());
-                    } else if (state is LoadingFactsState) {
-                      return allCards(context, factsBloc, buildLoading());
-                    } else if (state is LoadedFactsState) {
-                      return Center(
-                        child: allCards(
-                          context,
-                          factsBloc,
-                          state.item.text,
-                        ),
-                      );
-                    } else if (state is LoadedMultipleFactsState) {
-                      return Center(
-                        child: allCards(
-                          context,
-                          factsBloc,
-                          state.items,
-                        ),
-                      );
-                    } else if (state is ErrorFactsState) {
-                      return allCards(
-                        context,
-                        factsBloc,
-                        state.message,
-                      );
-                    } else {
-                      return buildLoading();
-                    }
-                  },
+              GestureDetector(
+                child: UserAccountsDrawerHeader(
+                  currentAccountPicture: CircleAvatar(
+                    backgroundImage: AssetImage("res/avatar.png"),
+                  ),
+                  accountEmail: Text(_devLink),
+                  accountName: Text("Gumboy"),
                 ),
+                onTap: _launchURL,
+                onLongPress: () {
+                  Clipboard.setData(new ClipboardData(text: _devLink));
+                  key.currentState.showSnackBar(new SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    content: new Text("Copied to Clipboard"),
+                  ));
+                },
               ),
-              Container(
-                child: ButtonBar(
-                  alignment: MainAxisAlignment.spaceEvenly,
-                  // crossAxisAlignment: CrossAxisAlignment.center,
-                  // mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    ButtonTheme(
-                      minWidth: 75.0,
-                      height: 60.0,
-                      child: RaisedButton(
-                        shape: new RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(20.0),
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            Icon(
-                              _hide ? Icons.crop_original : Icons.crop_din,
-                              size: 40,
-                            ),
-                            Text(
-                              "Hide",
-                              style: TextStyle(
-                                  // color: Colors.grey[800],
-                                  fontWeight: FontWeight.w700,
-                                  fontStyle: FontStyle.italic,
-                                  fontFamily: 'Open Sans',
-                                  fontSize: 30),
-                            ),
-                          ],
-                        ),
-                        onPressed: _onChanged,
-                      ),
-                    ),
-                    ButtonTheme(
-                      minWidth: 50.0,
-                      height: 60.0,
-                      child: RaisedButton(
-                        shape: new RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(20.0),
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            Icon(
-                              Icons.share,
-                              size: 40,
-                            ),
-                            Text(
-                              "Share",
-                              style: TextStyle(
-                                  // color: Colors.grey[800],
-                                  fontWeight: FontWeight.w700,
-                                  fontStyle: FontStyle.italic,
-                                  fontFamily: 'Open Sans',
-                                  fontSize: 30),
-                            ),
-                          ],
-                        ),
-                        onPressed: () {},
-                      ),
-                    ),
-                  ],
-                ),
-              )
+              Text(
+                "Categories",
+                style: TextStyle(
+                    // color: Colors.grey[800],
+                    fontWeight: FontWeight.w700,
+                    fontStyle: FontStyle.italic,
+                    fontFamily: 'Open Sans',
+                    fontSize: 30),
+              ),
+              formatedCategory(
+                  title: "trivia",
+                  icon: Icons.help,
+                  size: 30,
+                  selected: 0,
+                  total: _totalsel,
+                  factsBloc: factsBloc,
+                  context: context),
+              formatedCategory(
+                  title: "date",
+                  icon: Icons.date_range,
+                  size: 30,
+                  selected: 1,
+                  total: _totalsel,
+                  factsBloc: factsBloc,
+                  context: context),
+              formatedCategory(
+                  title: "math",
+                  icon: Icons.filter_9_plus,
+                  size: 30,
+                  selected: 2,
+                  total: _totalsel,
+                  factsBloc: factsBloc,
+                  context: context),
+              formatedCategory(
+                  title: "year",
+                  icon: Icons.access_time,
+                  size: 30,
+                  selected: 3,
+                  total: _totalsel,
+                  factsBloc: factsBloc,
+                  context: context),
             ],
           ),
-        ],
+        ),
+        resizeToAvoidBottomPadding: false,
+        body: Container(
+          child: Stack(
+            children: <Widget>[
+              Center(child: todaysPic),
+              Column(
+                children: <Widget>[
+                  Flexible(
+                    flex: 2,
+                    fit: FlexFit.tight,
+                    child: Container(
+                      child: BlocBuilder<FactsBloc, FactsState>(
+                        builder: (context, state) {
+                          if (state is InitialFactsState) {
+                            return allCards(context, factsBloc, buildInitial());
+                          } else if (state is LoadingFactsState) {
+                            return allCards(context, factsBloc, buildLoading());
+                          } else if (state is LoadedFactsState) {
+                            return Center(
+                              child: allCards(
+                                context,
+                                factsBloc,
+                                state.item.text,
+                              ),
+                            );
+                          } else if (state is LoadedMultipleFactsState) {
+                            return Center(
+                              child: allCards(
+                                context,
+                                factsBloc,
+                                state.items,
+                              ),
+                            );
+                          } else if (state is ErrorFactsState) {
+                            return allCards(
+                              context,
+                              factsBloc,
+                              state.message,
+                            );
+                          } else {
+                            return buildLoading();
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  Container(
+                    child: ButtonBar(
+                      alignment: MainAxisAlignment.spaceEvenly,
+                      // crossAxisAlignment: CrossAxisAlignment.center,
+                      // mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        ButtonTheme(
+                          minWidth: 75.0,
+                          height: 60.0,
+                          child: RaisedButton(
+                            shape: new RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(20.0),
+                            ),
+                            child: Row(
+                              children: <Widget>[
+                                Icon(
+                                  _hide ? Icons.crop_original : Icons.crop_din,
+                                  size: 40,
+                                ),
+                                Text(
+                                  "Hide",
+                                  style: TextStyle(
+                                      // color: Colors.grey[800],
+                                      fontWeight: FontWeight.w700,
+                                      fontStyle: FontStyle.italic,
+                                      fontFamily: 'Open Sans',
+                                      fontSize: 30),
+                                ),
+                              ],
+                            ),
+                            onPressed: _onChanged,
+                          ),
+                        ),
+                        ButtonTheme(
+                          minWidth: 50.0,
+                          height: 60.0,
+                          child: RaisedButton(
+                            shape: new RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(20.0),
+                            ),
+                            child: Row(
+                              children: <Widget>[
+                                Icon(
+                                  Icons.share,
+                                  size: 40,
+                                ),
+                                Text(
+                                  "Share",
+                                  style: TextStyle(
+                                      // color: Colors.grey[800],
+                                      fontWeight: FontWeight.w700,
+                                      fontStyle: FontStyle.italic,
+                                      fontFamily: 'Open Sans',
+                                      fontSize: 30),
+                                ),
+                              ],
+                            ),
+                            onPressed: _shareImplementation,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  _shareImplementation() {
+    Share.share(_textToBeShared, subject: _nameOfApp);
+  }
+
+  _onRefreshActive(bool active) {
+    setState(() {
+      _refreshActive = active;
+    });
   }
 
   _onChanged() {
@@ -257,19 +316,29 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   _onChangedType(type) {
     setState(() {
       _changeType = type;
-      print(type);
     });
+  }
+
+  _launchURL() async {
+    const url = _devLink;
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   Widget allCards(BuildContext context, FactsBloc factsBloc, state) {
     CardController controller;
     // final factsBloc = BlocProvider.of<FactsBloc>(context);
+    SizeConfig().init(context);
     var isWidget = false;
     if (state is List) {
       isWidget = false;
     } else if (state is Widget) {
       isWidget = true;
     }
+
     return Container(
       // color: Colors.blue,
       height: MediaQuery.of(context).size.height * 0.7,
@@ -289,7 +358,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             minHeight: MediaQuery.of(context).size.width * 0.8,
             cardBuilder: (context, index) {
               return Card(
-                child: isWidget ? state : formatedText(state[index].text),
+                child: isWidget
+                    ? state
+                    : formatedText(state[index].text,
+                        center: true,
+                        fsize: MediaQuery.of(context).size.width / 16),
               );
             },
             cardController: controller = CardController(),
@@ -323,21 +396,63 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget buildInitial() {
-    return formatedText("Have I got facts for you!");
+    return formatedText("Have I got facts for you!",
+        fsize: MediaQuery.of(context).size.width / 16, center: true);
   }
 
   Widget buildLoading() {
     return Center(child: CircularProgressIndicator());
   }
 
-  Widget formatedText(String displayText) {
+  Widget formatedCategory(
+      {String title: "",
+      IconData icon,
+      double size = 10,
+      double fsize = 10,
+      int selected = 0,
+      int total = 0,
+      FactsBloc factsBloc,
+      BuildContext context}) {
+    return Container(
+      child: ListTile(
+        selected: _listTileSelected[selected],
+        contentPadding: EdgeInsets.only(left: 30),
+        leading: Icon(
+          icon,
+          size: size,
+        ),
+        title: Text(
+          capitalize(input: title),
+          style: Theme.of(context).textTheme.headline,
+        ),
+        onTap: () {
+          Navigator.pop(context);
+          // _listTileSelected[selected] = true;
+          setState(() {
+            _listTileSelected.asMap().forEach((index, val) {
+              _listTileSelected[index] = false;
+            });
+            _listTileSelected[selected] = true;
+            _onChangedType(title);
+          });
+
+          factsBloc.add(GetFacts(20, title));
+        },
+      ),
+    );
+  }
+
+  Widget formatedText(String displayText,
+      {double fsize = 30, bool center = false}) {
+    _textToBeShared = displayText;
     return Center(
       child: SingleChildScrollView(
         child: Container(
+          alignment: center ? AlignmentDirectional.center : null,
           padding: new EdgeInsets.only(left: 10.0, right: 10.0),
           child: Text(
             displayText,
-            textAlign: TextAlign.center,
+            textAlign: center ? TextAlign.center : null,
             // maxLines: 3,
             // overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -345,10 +460,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 fontWeight: FontWeight.w700,
                 fontStyle: FontStyle.italic,
                 fontFamily: 'Open Sans',
-                fontSize: 30),
+                fontSize: fsize),
           ),
         ),
       ),
     );
+  }
+
+  String capitalize({String input = ""}) {
+    if (input.length == 0) {
+      return input;
+    }
+    return input[0].toUpperCase() + input.substring(1);
   }
 }
