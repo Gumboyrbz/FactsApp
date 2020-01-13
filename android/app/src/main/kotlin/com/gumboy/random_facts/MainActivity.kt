@@ -1,4 +1,4 @@
-package com.example.random_facts
+package com.gumboy.random_facts
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
