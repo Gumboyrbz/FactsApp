@@ -26,7 +26,7 @@ class NumberRepository {
     factsEverySec();
   }
   //Perform a function call every [sec] secs to retrieve data from api
-  void factsEverySec([int sec = 150]) async {
+  void factsEverySec([int sec = _maxNum]) async {
     getfactsfromApi();
     timer =
         Timer.periodic(Duration(seconds: sec), (Timer t) => getfactsfromApi());
