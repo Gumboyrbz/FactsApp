@@ -11,7 +11,7 @@ import 'package:random_facts/src/swipe_cards/flutter_tindercard.dart';
 import 'package:share/share.dart';
 import 'package:random_facts/src/ui/SizeConfig.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
 
 class RandomFactsApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -52,7 +52,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final picUrl = picArray[rndnum] + "480x720";
   bool _hide = false;
   String _textToBeShared = "Useless Number Facts to share with friends";
-  String _nameOfApp = "Fact Brought to you by App";
+  static const String _nameOfApp = "\nFact Brought to you by Random Facts\nDeveloper: Gumboy";
+  static const String _appUrl = "https://play.google.com/store/apps/details?id=com.gumboy.random_facts";
   static const String _devLink = "https://gumboyrbz.github.io";
   List<bool> _listTileSelected = List.generate(4, (i) => false);
   String _changeType = "trivia";
@@ -79,7 +80,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     //   placeholder: (context, url) => defaultImage,
     //   errorWidget: (context, url, error) => defaultImage,
     // );
-   final Widget todaysPic = FadeInImage(
+    final Widget todaysPic = FadeInImage(
       placeholder: AssetImage('res/default.jpg'),
       image: NetworkImage(
         picUrl,
@@ -200,6 +201,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               ),
                             );
                           } else if (state is LoadedMultipleFactsState) {
+                            print("${state.items.length}");
                             return Center(
                               child: allCards(
                                 context,
@@ -223,37 +225,35 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   Container(
                     child: ButtonBar(
                       alignment: MainAxisAlignment.spaceEvenly,
-                      // crossAxisAlignment: CrossAxisAlignment.center,
-                      // mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        ButtonTheme(
-                          minWidth: 75.0,
-                          height: 60.0,
-                          child: RaisedButton(
-                            shape: new RoundedRectangleBorder(
-                              borderRadius: new BorderRadius.circular(20.0),
-                            ),
-                            child: Row(
-                              children: <Widget>[
-                                Icon(
-                                  _hide ? Icons.crop_original : Icons.crop_din,
-                                  size: 40,
-                                ),
-                                Text(
-                                  "Hide",
-                                  style: TextStyle(
-                                      // color: Colors.grey[800],
-                                      fontWeight: FontWeight.w700,
-                                      fontStyle: FontStyle.italic,
-                                      fontFamily: 'Open Sans',
-                                      fontSize: 30),
-                                ),
-                              ],
-                            ),
-                            onPressed: _onChanged,
-                          ),
-                        ),
+                        // ButtonTheme(
+                        //   minWidth: 75.0,
+                        //   height: 60.0,
+                        //   child: RaisedButton(
+                        //     shape: new RoundedRectangleBorder(
+                        //       borderRadius: new BorderRadius.circular(20.0),
+                        //     ),
+                        //     child: Row(
+                        //       children: <Widget>[
+                        //         Icon(
+                        //           _hide ? Icons.crop_original : Icons.crop_din,
+                        //           size: 40,
+                        //         ),
+                        //         Text(
+                        //           "Hide",
+                        //           style: TextStyle(
+                        //               // color: Colors.grey[800],
+                        //               fontWeight: FontWeight.w700,
+                        //               fontStyle: FontStyle.italic,
+                        //               fontFamily: 'Open Sans',
+                        //               fontSize: 30),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //     onPressed: _onChanged,
+                        //   ),
+                        // ),
                         ButtonTheme(
                           minWidth: 50.0,
                           height: 60.0,
@@ -333,8 +333,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     // final factsBloc = BlocProvider.of<FactsBloc>(context);
     SizeConfig().init(context);
     var isWidget = false;
+    int stacksize = 2;
     if (state is List) {
       isWidget = false;
+      stacksize = 3;
     } else if (state is Widget) {
       isWidget = true;
     }
@@ -349,22 +351,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           child: new TinderSwapCard(
             orientation: AmassOrientation.BOTTOM,
             totalNum: isWidget ? 1 : state.length,
-            stackNum: 3,
+            stackNum: isWidget ? 3 : stacksize,
             swipeEdge: 4.0,
             animDuration: 400,
             maxWidth: MediaQuery.of(context).size.width * 0.9,
             maxHeight: MediaQuery.of(context).size.width * 0.9,
             minWidth: MediaQuery.of(context).size.width * 0.8,
             minHeight: MediaQuery.of(context).size.width * 0.8,
-            cardBuilder: (context, index) {
-              return Card(
-                child: isWidget
-                    ? state
-                    : formatedText(state[index].text,
-                        center: true,
-                        fsize: MediaQuery.of(context).size.width / 16),
-              );
-            },
+            cardBuilder: (context, index) => Card(
+              child: isWidget
+                  ? state
+                  : formatedText(state?.elementAt(index)?.text,
+                      center: true,
+                      fsize: MediaQuery.of(context).size.width / 16),
+            ),
             cardController: controller = CardController(),
             swipeUpdateCallback: (DragUpdateDetails details, Alignment align) {
               /// Get swiping card's alignment
@@ -380,11 +380,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               if (orientation == CardSwipeOrientation.LEFT ||
                   orientation == CardSwipeOrientation.RIGHT) {
                 if (isWidget == true) {
-                  factsBloc.add(GetFacts(20, _changeType));
+                  factsBloc.add(GetFacts(
+                    20,
+                    _changeType,
+                  ));
                 }
                 if (isWidget == false) {
                   if (index == state.length - 1) {
-                    factsBloc.add(GetFacts(20, _changeType));
+                    factsBloc.add(GetFacts(
+                      20,
+                      _changeType,
+                    ));
                   }
                 }
               }
@@ -423,10 +429,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         title: Text(
           capitalize(input: title),
-          style: Theme.of(context).textTheme.headline,
+          style: Theme.of(context).textTheme.headline5,
         ),
         onTap: () {
-          Navigator.pop(context);
           // _listTileSelected[selected] = true;
           setState(() {
             _listTileSelected.asMap().forEach((index, val) {
@@ -437,6 +442,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           });
 
           factsBloc.add(GetFacts(20, title));
+          Navigator.pop(context);
         },
       ),
     );
@@ -444,7 +450,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget formatedText(String displayText,
       {double fsize = 30, bool center = false}) {
-    _textToBeShared = displayText;
+    _textToBeShared = displayText + _nameOfApp;
     return Center(
       child: SingleChildScrollView(
         child: Container(

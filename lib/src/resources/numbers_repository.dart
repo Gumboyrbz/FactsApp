@@ -11,12 +11,15 @@ class NumberRepository {
   final numbersApiProvider = NumbersApiProvider();
   Timer timer;
   static const _maxNum = 6000;
+  static const _repeat = 6000;
+  bool initial = true;
   var _highNum = 0;
   var _lowNum = 0;
   var _lowtemp = 0;
   var _offset = 100;
   var _random = new Random(DateTime.now().millisecondsSinceEpoch);
-  var globalType = "trivia";
+  var factTypes=["trivia", "math", "date", "year"];
+  var _globalType = "trivia";
   NumberRepository() {
     sources.add(kIsWeb ? null : numberDbProvider);
     sources.add(numbersApiProvider);
@@ -26,8 +29,12 @@ class NumberRepository {
     factsEverySec();
   }
   //Perform a function call every [sec] secs to retrieve data from api
-  void factsEverySec([int sec = _maxNum]) async {
-    getfactsfromApi();
+  void factsEverySec([int sec = _repeat]) async {
+    for(var i in factTypes){
+      _globalType = i;
+      getfactsfromApi();
+      _globalType = factTypes[0];
+    }
     timer =
         Timer.periodic(Duration(seconds: sec), (Timer t) => getfactsfromApi());
   }
@@ -40,17 +47,15 @@ class NumberRepository {
     _lowNum = next(_lowtemp, _maxNum);
     _highNum = _lowNum + _offset;
     var maxVal = _maxNum;
-    if (globalType == "date") {
+    if (_globalType == "date") {
       maxVal = 366;
     }
     List<ItemModel> listfacts =
-        await numbersApiProvider.fetchMultiple(100, globalType, maxVal);
+        await numbersApiProvider.fetchMultiple(100, _globalType, maxVal);
     ItemModel item;
     if (caches != null && listfacts != null) {
       for (item in listfacts) {
-        for (var cache in caches) {
-          cache.addItem(item);
-        }
+          caches[0].addItem(item);
       }
     }
   }
@@ -58,7 +63,7 @@ class NumberRepository {
   Future<ItemModel> fetchItem(int id, [String type = "trivia"]) async {
     ItemModel item;
     var source;
-    globalType = type;
+    _globalType = type;
     for (source in sources) {
       item = await source.fetchItem(id, type);
       if (item != null) {
@@ -76,7 +81,7 @@ class NumberRepository {
   Future<ItemModel> fetchRandom(String type) async {
     ItemModel item;
     var source;
-    globalType = type;
+    _globalType = type;
     for (source in sources) {
       item = await source.fetchRandom(type);
       if (item != null) {
@@ -102,25 +107,25 @@ class NumberRepository {
     List<ItemModel> items;
     var source;
     var count = 0;
-    globalType = type;
-    if (type == 'date') {
+    _globalType = type;
+    if (type == "date") {
       maxVal = 366;
     }
     OUTER:
     while (count <= 0) {
-      for (var source in sources) {
+      for (source in sources) {
         items = await source.fetchMultiple(size, type, maxVal);
-        if (items != null) {
+        if (items != null || items.length != 0) {
           break OUTER;
         }
-        count++;
+        // count++;
 
-        if (count > 1) {
-          if (!kIsWeb) {
-            numberDbProvider.resetUsedFacts();
-          }
-          count = 0;
-        }
+        // if (count > 1) {
+        //   if (!kIsWeb) {
+        //     numberDbProvider.resetUsedFacts();
+        //   }
+        //   count = 0;
+        // }
       }
     }
     for (var cache in caches) {

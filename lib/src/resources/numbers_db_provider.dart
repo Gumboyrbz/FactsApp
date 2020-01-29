@@ -157,8 +157,8 @@ class NumberDbProvider implements Source, Cache {
     if (maps.length > zeroResults) {
       for (var i in maps) {
         listofItems.add(ItemModel.fromDb(i));
-        mapChange = await db.rawUpdate(
-            "UPDATE $type SET used = 1 WHERE number_id= ${i["number_id"]}");
+        // mapChange = await db.rawUpdate(
+        //     "UPDATE $type SET used = 1 WHERE number_id= ${i["number_id"]}");
       }
 
     //   if (maps.length <= lowlimit) {
@@ -169,7 +169,7 @@ class NumberDbProvider implements Source, Cache {
     //   return listofItems;
     } else if (maps.length <= lowlimit) {
       // mapChange = await db.rawUpdate("UPDATE $type SET used = 0");
-      resetUsedFacts(type);
+      // resetUsedFacts(type);
     }
 
     return listofItems;

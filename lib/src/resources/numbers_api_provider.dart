@@ -33,7 +33,7 @@ class NumbersApiProvider implements Source {
 
   jsonResponse(String idUrl) async {
     try {
-      final response = await client?.get(idUrl);
+      final response = await client.get(idUrl);
       final ids = json.decode(response.body);
       return ids;
     } catch (e) {
@@ -81,6 +81,7 @@ class NumbersApiProvider implements Source {
     var randomList =
         new List.generate(size, (_) => min + _random.nextInt(maxVal - min));
     final itemUrl = "$_url/${randomList.join(',')}/$type/$_ujson";
+    print(itemUrl);
     final ids = await jsonResponse(itemUrl);
     if (ids != -1) {
       List<ItemModel> rangeofItems = List<ItemModel>();

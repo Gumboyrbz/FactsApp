@@ -16,11 +16,19 @@ class GetFact extends FactsEvent {
   @override
   List<Object> get props => [type];
 }
+
 class GetFacts extends FactsEvent {
   final int size;
   final String type;
-  const GetFacts(this.size,[this.type = "trivia"]);
+  const GetFacts(this.size, [this.type = "trivia"]);
   @override
   List<Object> get props => [size, type];
 }
 
+class RefreshFacts extends FactsEvent {
+  final int size;
+  final String type;
+  const RefreshFacts(this.size,[this.type = "trivia"]);
+  @override
+  List<Object> get props => [type];
+}
